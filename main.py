@@ -1,5 +1,6 @@
 from os import listdir
 from os.path import isfile, join
+import os
 
 import networkx as nx
 from networkx.algorithms.community import greedy_modularity_communities
@@ -12,7 +13,8 @@ from networkx.algorithms.community import quality
 
 from networkx.algorithms.community import girvan_newman
 
-mypath = "graphs/"
+mypath = os.path.abspath(os.getcwd()) + "/graphs"
+print(mypath)
 
 from sklearn.metrics import normalized_mutual_info_score
 
@@ -61,24 +63,24 @@ for f in listdir(mypath):
 
         greedy_modularity = greedy_modularity_communities(graph)
         
-        print("Community intersection for greedy modularity: {}".format(calculate_intersection(graph, greedy_modularity)))
+        # print("Community intersection for greedy modularity: {}".format(calculate_intersection(graph, greedy_modularity)))
         print("NMI for greedy modularity: {}".format(calculate_nmi(graph, greedy_modularity)))
 
 
         label_propagation_g = label_propagation_communities(graph)
 
-        print("Community intersection for label propagation: {}".format(calculate_intersection(graph, label_propagation_g)))
+        # print("Community intersection for label propagation: {}".format(calculate_intersection(graph, label_propagation_g)))
         print("NMI for label propagation: {}".format(calculate_nmi(graph, label_propagation_g)))
 
 
         louvain_communities_g = louvain_communities(graph)
 
-        print("Community intersection for louvain: {}".format(calculate_intersection(graph, louvain_communities_g)))
+        # print("Community intersection for louvain: {}".format(calculate_intersection(graph, louvain_communities_g)))
         print("NMI for louvain: {}".format(calculate_nmi(graph, louvain_communities_g)))
 
         gn = next(girvan_newman(graph))
 
-        print("Community intersection for girvan newman: {}".format(calculate_intersection(graph, gn)))
+        # print("Community intersection for girvan newman: {}".format(calculate_intersection(graph, gn)))
         print("NMI for girvan newman: {}".format(calculate_nmi(graph, gn)))
 
         
