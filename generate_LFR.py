@@ -16,43 +16,64 @@ if __name__ == '__main__':
     average_degree_250_2 = 7
 
     average_degree_1 = 15
-    average_degree_2 = 35
+    average_degree_2 = 25
 
+    
     for mu in mus:
         for num in number_of_nodes:
-            print("new")
             if num == 250:
-                print("graph_{}_{}_{}.gml".format(
-            num, average_degree_250_1, mu))
                 G = LFR_benchmark_graph(
-                        n = num,
-                        tau1 = tau1,
-                        tau2 = tau2_small,
-                        mu = mu,
-                        average_degree = average_degree_250_1,
-                        max_degree = max_degree,
-                        min_community = min_community,
-                        seed = 10
-                    )
+                            n = num,
+                            tau1 = tau1,
+                            tau2 = tau2_small,
+                            mu = mu,
+                            average_degree = average_degree_250_1,
+                            max_degree = max_degree,
+                            min_community = min_community,
+                            seed = 10
+                        )
                 nx.write_gml(G, "graphs/graph_{}_{}_{}.gml".format(
-            num, average_degree_250_1, mu), stringizer=str)
+                num, average_degree_250_1, mu), stringizer=str)
+
+                G = LFR_benchmark_graph(
+                            n = num,
+                            tau1 = tau1,
+                            tau2 = tau2_small,
+                            mu = mu,
+                            average_degree = average_degree_250_2,
+                            max_degree = max_degree,
+                            min_community = min_community,
+                            seed = 10
+                        )
+                nx.write_gml(G, "graphs/graph_{}_{}_{}.gml".format(
+                num, average_degree_250_2, mu), stringizer=str)
 
             else:
-                print("graph_{}_{}_{}.gml".format(
-            num, average_degree_1, mu))
                 G = LFR_benchmark_graph(
-                        n = num,
-                        tau1 = tau1,
-                        tau2 = tau2,
-                        mu = mu,
-                        average_degree = average_degree_1,
-                        max_degree = max_degree,
-                        min_community = min_community,
-                        seed = 10
-                    )
+                            n = num,
+                            tau1 = tau1,
+                            tau2 = tau2,
+                            mu = mu,
+                            average_degree =  average_degree_1,
+                            max_degree = max_degree,
+                            min_community = min_community,
+                            seed = 10
+                        )
                 nx.write_gml(G, "graphs/graph_{}_{}_{}.gml".format(
-            num, average_degree_1, mu), stringizer=str)
+                num, average_degree_1, mu), stringizer=str)
 
+                G = LFR_benchmark_graph(
+                            n = num,
+                            tau1 = tau1,
+                            tau2 = tau2,
+                            mu = mu,
+                            average_degree =  average_degree_2,
+                            max_degree = max_degree,
+                            min_community = min_community,
+                            seed = 10
+                        )
+                nx.write_gml(G, "graphs/graph_{}_{}_{}.gml".format(
+                num, average_degree_2, mu), stringizer=str)
 
 
 

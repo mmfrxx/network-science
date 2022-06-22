@@ -1,7 +1,8 @@
 from os import listdir
 from os.path import isfile, join
 import os
-
+import json
+import pickle
 import networkx as nx
 from networkx.algorithms.community import greedy_modularity_communities
 from networkx.algorithms.community import modularity
@@ -10,42 +11,10 @@ from networkx.algorithms.community import performance
 from networkx.algorithms.community.louvain import louvain_communities
 from networkx.algorithms.community import quality
 
-
-from networkx.algorithms.community import girvan_newman
-
 mypath = os.path.abspath(os.getcwd()) + "/graphs"
-print(mypath)
 
 from sklearn.metrics import normalized_mutual_info_score
 
-
-def calculate_intersection(graph, partition):
-
-    original = [[0 for j in range(len(graph))] for i in range(len(graph))] 
-    algorithm = [[0 for j in range(len(graph))] for i in range(len(graph))] 
-    
-
-    for i, community in list(graph.nodes(data='community')):
-        community = list(community[1:-1].split(","))
-        for node in community:
-            original[int(i)][int(node)] = 1
-    
-    for community in partition:
-        community = list(community)
-        for i in range(len(community)):
-            for j in range(len(community)):
-                algorithm[int(community[i])][int(community[j])] = 1
-    
-    correct = 0
-    total = 0
-
-    for i in range(len(graph)):
-        for j in range(len(graph)):
-            if i <= j:
-                if original[i][j] == algorithm[i][j]:
-                    correct += 1
-                total += 1
-    return correct / total
                  
 def calculate_nmi(graph, partition):
     original = list(map(lambda x: x[1], list(graph.nodes(data='community'))))
@@ -57,36 +26,56 @@ def calculate_nmi(graph, partition):
 
     return normalized_mutual_info_score(original, algorithm)
 
-for f in listdir(mypath):
-    if isfile(join(mypath, f)):
-        graph = nx.read_gml(join(mypath, f), destringizer = str)
+def create_result_dict_for_json(node_number, average_degree, mu, algorithm, score):
+    return {
+        "number": node_number,
+        "avg" : average_degree,
+        "mu": mu,
+        "name": algorithm,
+        "nmi": score
+    }
 
-        greedy_modularity = greedy_modularity_communities(graph)
+# in following lines of code we find communities using three algorithms and calculate their nmi
+def do_experiment():
+    results = []
+    
+    for f in listdir(mypath):
+        if isfile(join(mypath, f)):
+            _, num, average_degree, mu = f[:-4].split("_")
+
+            graph = nx.read_gml(join(mypath, f), destringizer = str)
+
+            greedy_modularity = greedy_modularity_communities(graph)
+            greedy_nmi = calculate_nmi(graph, greedy_modularity)
+            results.append(create_result_dict_for_json(int(num), int(average_degree), float(mu), "greedy", greedy_nmi))
+            with open('./partitions/greedy_{}.partt'.format(f[:-4]), 'wb') as file:
+                pickle.dump(greedy_modularity, file)
+            
+            # with open('greedy.partt', 'rb') as config_dictionary_file:
+            #     config_dictionary = pickle.load(config_dictionary_file)
+            #     print(config_dictionary == greedy_modularity)
+
         
-        # print("Community intersection for greedy modularity: {}".format(calculate_intersection(graph, greedy_modularity)))
-        print("NMI for greedy modularity: {}".format(calculate_nmi(graph, greedy_modularity)))
+            label_propagation_g = label_propagation_communities(graph)
+            lp_nmi = calculate_nmi(graph, list(label_propagation_g))
+            results.append(create_result_dict_for_json(int(num), int(average_degree), float(mu), "label", lp_nmi))
+            with open('./partitions/label_{}.partt'.format(f[:-4]), 'wb') as file:
+                pickle.dump(list(label_propagation_g), file)
 
 
-        label_propagation_g = label_propagation_communities(graph)
+            louvain_communities_g = louvain_communities(graph)
+            l_nmi = calculate_nmi(graph, louvain_communities_g)
+            results.append(create_result_dict_for_json(int(num), int(average_degree), float(mu), "louvain", l_nmi))
+            with open('./partitions/louvain_{}.partt'.format(f[:-4]), 'wb') as file:
+                pickle.dump(louvain_communities_g, file)
 
-        # print("Community intersection for label propagation: {}".format(calculate_intersection(graph, label_propagation_g)))
-        print("NMI for label propagation: {}".format(calculate_nmi(graph, label_propagation_g)))
+    jsonString = json.dumps(results)
+    jsonFile = open("results.json", "w")
+    jsonFile.write(jsonString)
+    jsonFile.close()
 
-
-        louvain_communities_g = louvain_communities(graph)
-
-        # print("Community intersection for louvain: {}".format(calculate_intersection(graph, louvain_communities_g)))
-        print("NMI for louvain: {}".format(calculate_nmi(graph, louvain_communities_g)))
-
-        gn = next(girvan_newman(graph))
-
-        # print("Community intersection for girvan newman: {}".format(calculate_intersection(graph, gn)))
-        print("NMI for girvan newman: {}".format(calculate_nmi(graph, gn)))
-
-        
-
-        print(f)
-
+if __name__ == '__main__':
+    do_experiment()
 
 
 
