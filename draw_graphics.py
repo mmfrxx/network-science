@@ -6,12 +6,21 @@ mypath = os.path.abspath(os.getcwd()) + "/results.json"
 
 #(mu, name, node_number, avg_degree) 
 mus = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
-algos = ["greedy", "label", "louvain"]
+algos = ["greedy", "girvan", "louvain"]
 
 algo_full_names = {
     'greedy': 'greedy modularity optimization',
-    'label' : 'label propagation',
-    'louvain' : 'louvain communities'
+    'girvan' : 'Girvan-Newman',
+    'louvain' : 'Louvain method'
+}
+
+colors = {
+    ("greedy", "ami"): '#6C3483',
+    ("greedy", "nmi"): '#BB8FCE',
+    ("girvan", "ami"): '#239B56',
+    ("girvan", "nmi"): '#82E0AA',
+    ("louvain", "ami"): '#2874A6',
+    ("louvain", "nmi"): '#85C1E9',
 }
 
 nodes = [250, 500, 1000, 2500, 5000, 10000]
@@ -45,7 +54,8 @@ def process_data():
         deg = result['avg']
         if (mu, algo, node, deg) not in data:
             data[(mu, algo, node, deg)] = {'total' : 0, 'count' : 0}
-        data[(mu, algo, node, deg)]['total'] += result['nmi']
+        data[(mu, algo, node, deg)]['total_nmi'] += result['nmi']
+        data[(mu, algo, node, deg)]['total_ami'] += result['ami']
         data[(mu, algo, node, deg)]['count'] += 1
     
     return data
@@ -55,14 +65,18 @@ def draw_graphics(data):
     for mu in mus:
         for algo in algos:
             x = []
-            y = []
+            y_nmi = []
+            y_ami = []
             for deg, node in sparser:
                 if (mu, algo, node, deg) in data:
                     x.append(node)
-                    mean = data[(mu, algo, node, deg)]['total']  / data[(mu, algo, node, deg)]['count'] 
-                    y.append(mean)
+                    avg_nmi = data[(mu, algo, node, deg)]['total_nmi']  / data[(mu, algo, node, deg)]['count'] 
+                    avg_ami = data[(mu, algo, node, deg)]['total_ami']  / data[(mu, algo, node, deg)]['count'] 
+                    y_nmi.append(avg_nmi)
+                    y_ami.append(avg_ami)
 
-            plt.plot(x, y, label = algo_full_names[algo])
+            plt.plot(x, y_nmi, label = algo_full_names[algo] + ", nmi", color = colors[(algo, "nmi")])
+            plt.plot(x, y_ami, label = algo_full_names[algo] + ", ami", color = colors[(algo, "ami")])
         plt.xlabel('Number of nodes')
         plt.ylabel('NMI')
         plt.title('NMI of algorithms on sparser graphs for mu = {}'.format(mu))
@@ -73,13 +87,17 @@ def draw_graphics(data):
 
         for algo in algos:
             x = []
-            y = []
+            y_nmi = []
+            y_ami = []
             for deg, node in denser:
                 if (mu, algo, node, deg) in data:
                     x.append(node)
-                    mean = data[(mu, algo, node, deg)]['total']  / data[(mu, algo, node, deg)]['count'] 
-                    y.append(mean)
-            plt.plot(x, y, label = algo_full_names[algo])
+                    avg_nmi = data[(mu, algo, node, deg)]['total_nmi']  / data[(mu, algo, node, deg)]['count'] 
+                    avg_ami = data[(mu, algo, node, deg)]['total_ami']  / data[(mu, algo, node, deg)]['count'] 
+                    y_nmi.append(avg_nmi)
+                    y_ami.append(avg_ami)
+            plt.plot(x, y_nmi, label = algo_full_names[algo] + ", nmi", color = colors[(algo, "nmi")])
+            plt.plot(x, y_ami, label = algo_full_names[algo] + ", ami", color = colors[(algo, "ami")])
         plt.xlabel('Number of nodes')
         plt.ylabel('NMI')
         plt.title('NMI of algorithms on denser graphs for mu = {}'.format(mu))
