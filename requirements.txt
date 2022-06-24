@@ -1,3 +1,5 @@
 networkx
 sklearn
 matplotlib
+leidenalg
+igraph

@@ -6,19 +6,19 @@ mypath = os.path.abspath(os.getcwd()) + "/results.json"
 
 #(mu, name, node_number, avg_degree) 
 mus = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
-algos = ["greedy", "girvan", "louvain"]
+algos = ["greedy", "leiden", "louvain"]
 
 algo_full_names = {
     'greedy': 'greedy modularity optimization',
-    'girvan' : 'Girvan-Newman',
+    'leiden' : 'Leiden algorithm',
     'louvain' : 'Louvain method'
 }
 
 colors = {
     ("greedy", "ami"): '#6C3483',
     ("greedy", "nmi"): '#BB8FCE',
-    ("girvan", "ami"): '#239B56',
-    ("girvan", "nmi"): '#82E0AA',
+    ("leiden", "ami"): '#239B56',
+    ("leiden", "nmi"): '#82E0AA',
     ("louvain", "ami"): '#2874A6',
     ("louvain", "nmi"): '#85C1E9',
 }
@@ -41,6 +41,7 @@ denser = [
     (7, 250), (25, 500),(25, 1000),(25, 2500),(25, 5000),(25, 10000)
 ]
 
+#Reads data from results.json and stores in dictionary with keys (mu, algo, node, deg)
 def process_data():
     results_file = open(mypath)
     results = json.load(results_file)
@@ -53,16 +54,17 @@ def process_data():
         node = result['number']
         deg = result['avg']
         if (mu, algo, node, deg) not in data:
-            data[(mu, algo, node, deg)] = {'total' : 0, 'count' : 0}
+            data[(mu, algo, node, deg)] = {'total_nmi' : 0, 'count' : 0, 'total_ami':0}
         data[(mu, algo, node, deg)]['total_nmi'] += result['nmi']
         data[(mu, algo, node, deg)]['total_ami'] += result['ami']
         data[(mu, algo, node, deg)]['count'] += 1
     
     return data
 
-def draw_graphics(data):
 
+def draw_graphics(data):
     for mu in mus:
+        #for sparser graphs
         for algo in algos:
             x = []
             y_nmi = []
@@ -78,13 +80,14 @@ def draw_graphics(data):
             plt.plot(x, y_nmi, label = algo_full_names[algo] + ", nmi", color = colors[(algo, "nmi")])
             plt.plot(x, y_ami, label = algo_full_names[algo] + ", ami", color = colors[(algo, "ami")])
         plt.xlabel('Number of nodes')
-        plt.ylabel('NMI')
-        plt.title('NMI of algorithms on sparser graphs for mu = {}'.format(mu))
+        plt.ylabel('NMI and AMI')
+        plt.title('NMI and AMI of algorithms on sparser graphs for mu = {}'.format(mu))
         plt.legend()
         plt.savefig(os.path.abspath(os.getcwd()) + "/graphics/sparse_{}.png".format(mu))
 
         plt.clf()
 
+        #for denser graphs
         for algo in algos:
             x = []
             y_nmi = []
@@ -99,8 +102,8 @@ def draw_graphics(data):
             plt.plot(x, y_nmi, label = algo_full_names[algo] + ", nmi", color = colors[(algo, "nmi")])
             plt.plot(x, y_ami, label = algo_full_names[algo] + ", ami", color = colors[(algo, "ami")])
         plt.xlabel('Number of nodes')
-        plt.ylabel('NMI')
-        plt.title('NMI of algorithms on denser graphs for mu = {}'.format(mu))
+        plt.ylabel('NMI and AMI')
+        plt.title('NMI and AMI of algorithms on denser graphs for mu = {}'.format(mu))
         plt.legend()
         plt.savefig(os.path.abspath(os.getcwd()) + "/graphics/dense{}.png".format(mu))
 
